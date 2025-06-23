@@ -37,6 +37,14 @@ namespace Game2D.Engine
             };
         }
 
+        public EnemyBeast(Hero hero, double x, double y, double coef)
+            : this(hero, x, y)
+        {
+            this.Health = (int)(120 * coef);
+            this.damage = (int)(50 * coef);
+            // Можно добавить другие параметры, если нужно
+        }
+
         private double animationTimer = 0;
         private const double AnimationSpeed = 0.1; // Скорость анимации
 
@@ -47,6 +55,7 @@ namespace Game2D.Engine
 
         public override void Update()
         {
+            if (!IsActive && Sprite.Parent is Canvas canvas) { canvas.Children.Remove(Sprite); return; }
             if (_hero == null || !_hero.IsAlive) return;
             attackTimer = Math.Max(0, attackTimer - 1);
     
@@ -82,35 +91,35 @@ namespace Game2D.Engine
         public void TakeDamage(int dmg)
         {
             Health -= dmg;
-            if (Health <= 0) IsActive = false;
+            if (Health <= 0)
+            {
+                if (Sprite.Parent is Canvas canvas) canvas.Children.Remove(Sprite);
+                // Удаляем все кадры анимации, если они вдруг были добавлены
+                if (walkFrames != null)
+                {
+                    foreach (var frame in walkFrames)
+                    {
+                        if (frame != null && Sprite.Parent is Canvas c) c.Children.Remove(Sprite);
+                    }
+                }
+                var world = Game2D.MainWindow.CurrentGameWorld;
+                world?.AddScore(100);
+                IsActive = false;
+            }
         }
 
         // Проверка возможности движения по смещению dx, dy
         private bool CanMove(double dx, double dy)
         {
-            var mainWindow = Application.Current.MainWindow as MainWindow;
-            if (mainWindow?.GameCanvas == null) return false;
-    
+            var mainWindow = System.Windows.Application.Current.MainWindow as Game2D.MainWindow;
+            if (mainWindow == null || mainWindow.GameCanvas == null) return false;
             double newX = X + dx;
             double newY = Y + dy;
-    
-            // Проверка границ canvas
-            if (newX < 0 || newY < 0 || 
-                newX > mainWindow.GameCanvas.ActualWidth - Sprite.Width || 
-                newY > mainWindow.GameCanvas.ActualHeight - Sprite.Height)
+            double maxX = mainWindow.GameCanvas.ActualWidth - Sprite.Width;
+            double maxY = mainWindow.GameCanvas.ActualHeight - Sprite.Height;
+            if (newX < 0 || newY < 0 || newX > maxX || newY > maxY)
                 return false;
-    
-            // Проверка столкновений со стенами
-            var world = MainWindow.CurrentGameWorld;
-            if (world != null)
-            {
-                Rect futureBounds = new Rect(newX, newY, Sprite.Width, Sprite.Height);
-                foreach (var obj in world.Objects)
-                {
-                    if (obj is Wall wall && wall.IsActive && futureBounds.IntersectsWith(wall.GetBounds()))
-                        return false;
-                }
-            }
+            // Убираем любые проверки на стены и препятствия
             return true;
         }
     }

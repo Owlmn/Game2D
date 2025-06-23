@@ -32,6 +32,13 @@ namespace Game2D.Engine
                 Height = 48
             };
         }
+        public Zombi(Hero hero, double x, double y, double coef)
+            : this(hero, x, y)
+        {
+            this.health = (int)(120 * coef);
+            this.damage = (int)(10 * coef);
+            // Можно добавить другие параметры, если нужно
+        }
         // Проверка возможности движения по смещению dx, dy
         private bool CanMove(double dx, double dy)
         {
@@ -43,16 +50,7 @@ namespace Game2D.Engine
             double maxY = mainWindow.GameCanvas.ActualHeight - Sprite.Height;
             if (newX < 0 || newY < 0 || newX > maxX || newY > maxY)
                 return false;
-            var world = Game2D.MainWindow.CurrentGameWorld;
-            if (world != null)
-            {
-                Rect futureBounds = new Rect(newX, newY, Sprite.Width, Sprite.Height);
-                foreach (var obj in world.Objects)
-                {
-                    if (obj is Wall wall && wall.IsActive && futureBounds.IntersectsWith(wall.GetBounds()))
-                        return false;
-                }
-            }
+            // Убираем любые проверки на стены и препятствия
             return true;
         }
         public override Rect GetBounds()
@@ -98,6 +96,8 @@ namespace Game2D.Engine
             if (health <= 0)
             {
                 if (Sprite.Parent is Canvas canvas) canvas.Children.Remove(Sprite);
+                var world = Game2D.MainWindow.CurrentGameWorld;
+                world?.AddScore(50);
                 IsActive = false;
             }
         }

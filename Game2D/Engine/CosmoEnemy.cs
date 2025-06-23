@@ -46,33 +46,18 @@ namespace Game2D.Engine
         {
             var mainWindow = Application.Current.MainWindow as MainWindow;
             if (mainWindow?.GameCanvas == null) return false;
-    
             double newX = X + dx;
             double newY = Y + dy;
-    
-            // Проверка границ canvas
-            if (newX < 0 || newY < 0 || 
-                newX > mainWindow.GameCanvas.ActualWidth - Sprite.Width || 
-                newY > mainWindow.GameCanvas.ActualHeight - Sprite.Height)
+            if (newX < 0 || newY < 0 || newX > mainWindow.GameCanvas.ActualWidth - Sprite.Width || newY > mainWindow.GameCanvas.ActualHeight - Sprite.Height)
                 return false;
-    
-            // Проверка столкновений со стенами
-            var world = MainWindow.CurrentGameWorld;
-            if (world != null)
-            {
-                Rect futureBounds = new Rect(newX, newY, Sprite.Width, Sprite.Height);
-                foreach (var obj in world.Objects)
-                {
-                    if (obj is Wall wall && wall.IsActive && futureBounds.IntersectsWith(wall.GetBounds()))
-                        return false;
-                }
-            }
+            // Убираем любые проверки на стены и препятствия
             return true;
         }
         
         private const double AnimationSpeed = 0.1; // Скорость анимации
         public override void Update()
         {
+            if (!IsActive && Sprite.Parent is Canvas canvas) { canvas.Children.Remove(Sprite); return; }
             if (_hero == null || !_hero.IsAlive) return;
             double dx = _hero.X - X;
             double dy = _hero.Y - Y;
@@ -104,19 +89,23 @@ namespace Game2D.Engine
                 }
         
                 // Стрельба
+                int level = Game2D.MainWindow.CurrentLevelIndex;
+                int localShootDelay = shootDelay;
+                double bulletSpeed = 6;
+                if (level == 1 || level == 2) { localShootDelay = 90; bulletSpeed = 3.5; } // MAP3, MAP4
                 if (isInShootingRange)
                 {
                     shootCooldown++;
-                    if (shootCooldown >= shootDelay)
+                    if (shootCooldown >= localShootDelay)
                     {
                         shootCooldown = 0;
-                        ShootAtHero();
+                        ShootAtHero(bulletSpeed);
                     }
                 }
             }
         }
         
-        private void ShootAtHero()
+        private void ShootAtHero(double bulletSpeed = 6)
         {
             double dx = _hero.X + _hero.Sprite.Width / 2 - (X + Sprite.Width / 2);
             double dy = _hero.Y + _hero.Sprite.Height / 2 - (Y + Sprite.Height / 2);
@@ -124,14 +113,29 @@ namespace Game2D.Engine
             var world = Game2D.MainWindow.CurrentGameWorld;
             if (world != null)
             {
-                var bullet = new CosmoBullet(X + Sprite.Width / 2, Y + Sprite.Height / 2, angle);
+                var canvas = world._canvas;
+                var bullet = new CosmoBullet(canvas, X + Sprite.Width / 2, Y + Sprite.Height / 2, angle, bulletSpeed);
                 world.AddObject(bullet);
             }
         }
         public void TakeDamage(int dmg)
         {
             health -= dmg;
-            if (health <= 0) IsActive = false;
+            if (health <= 0)
+            {
+                if (Sprite.Parent is Canvas canvas) canvas.Children.Remove(Sprite);
+                // Удаляем все кадры анимации, если они вдруг были добавлены
+                if (walkFrames != null)
+                {
+                    foreach (var frame in walkFrames)
+                    {
+                        if (frame != null && Sprite.Parent is Canvas c) c.Children.Remove(Sprite);
+                    }
+                }
+                var world = Game2D.MainWindow.CurrentGameWorld;
+                world?.AddScore(150);
+                IsActive = false;
+            }
         }
 
         public override Rect GetBounds()

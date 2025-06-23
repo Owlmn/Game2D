@@ -7,9 +7,10 @@ namespace Game2D.Engine
     public class Laser : GameObject
     {
         private double dx, dy;
-        private const double Speed = 20;
+        private const double Speed = 8;
         private int damage = 75;
-        public Laser(double x, double y, double angle)
+        public Laser(Canvas canvas, double x, double y, double angle)
+            : base(canvas)
         {
             X = x;
             Y = y;

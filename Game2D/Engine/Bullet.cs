@@ -6,9 +6,10 @@ namespace Game2D.Engine
     public class Bullet : GameObject
     {
         private double dx, dy;
-        private const double Speed = 30;
+        private const double Speed = 15;
 
-        public Bullet(double x, double y, double angle)
+        public Bullet(Canvas canvas, double x, double y, double angle)
+            : base(canvas)
         {
             X = x;
             Y = y;

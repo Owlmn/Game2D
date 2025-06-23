@@ -7,14 +7,16 @@ namespace Game2D.Engine
     public class ShotgunPellet : GameObject
     {
         private double dx, dy;
-        private const double Speed = 16;
+        private double speed;
         private int damage = 15;
-        public ShotgunPellet(double x, double y, double angle)
+        public ShotgunPellet(Canvas canvas, double x, double y, double angle, double speed = 8)
+            : base(canvas)
         {
             X = x;
             Y = y;
-            dx = Math.Cos(angle) * Speed;
-            dy = Math.Sin(angle) * Speed;
+            this.speed = speed;
+            dx = Math.Cos(angle) * speed;
+            dy = Math.Sin(angle) * speed;
             Sprite = new Image
             {
                 Source = new BitmapImage(new Uri("pack://application:,,,/Project/images/shotgun_pellet.png")),

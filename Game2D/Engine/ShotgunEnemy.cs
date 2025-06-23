@@ -72,18 +72,22 @@ namespace Game2D.Engine
                     }
                 }
                 // Стрельба
+                int level = Game2D.MainWindow.CurrentLevelIndex;
+                int localShootDelay = shootDelay;
+                double pelletSpeed = 8;
+                if (level == 1 || level == 2) { localShootDelay = 135; pelletSpeed = 4.5; } // MAP3, MAP4
                 if (distance <= SHOOTING_RANGE)
                 {
                     shootCooldown++;
-                    if (shootCooldown >= shootDelay)
+                    if (shootCooldown >= localShootDelay)
                     {
                         shootCooldown = 0;
-                        ShootAtHero();
+                        ShootAtHero(pelletSpeed);
                     }
                 }
             }
         }
-        private void ShootAtHero()
+        private void ShootAtHero(double pelletSpeed = 8)
         {
             double dx = _hero.X + _hero.Sprite.Width / 2 - (X + Sprite.Width / 2);
             double dy = _hero.Y + _hero.Sprite.Height / 2 - (Y + Sprite.Height / 2);
@@ -91,9 +95,10 @@ namespace Game2D.Engine
             var world = Game2D.MainWindow.CurrentGameWorld;
             if (world != null)
             {
+                var canvas = world._canvas;
                 for (int i = -1; i <= 1; i++)
                 {
-                    var pellet = new ShotgunPellet(X + Sprite.Width / 2, Y + Sprite.Height / 2, angle + i * 0.25);
+                    var pellet = new ShotgunPellet(canvas, X + Sprite.Width / 2, Y + Sprite.Height / 2, angle + i * 0.25, pelletSpeed);
                     world.AddObject(pellet);
                 }
             }
@@ -104,6 +109,8 @@ namespace Game2D.Engine
             if (health <= 0)
             {
                 if (Sprite.Parent is Canvas canvas) canvas.Children.Remove(Sprite);
+                var world = Game2D.MainWindow.CurrentGameWorld;
+                world?.AddScore(120);
                 IsActive = false;
             }
         }

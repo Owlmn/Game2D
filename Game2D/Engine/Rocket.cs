@@ -7,9 +7,10 @@ namespace Game2D.Engine
     public class Rocket : GameObject
     {
         private double dx, dy;
-        private const double Speed = 10;
+        private const double Speed = 5;
         private int damage = 40;
-        public Rocket(double x, double y, double angle)
+        public Rocket(Canvas canvas, double x, double y, double angle)
+            : base(canvas)
         {
             X = x;
             Y = y;

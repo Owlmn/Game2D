@@ -87,12 +87,13 @@ namespace Game2D.Engine
             double dx = targetX - (X + Sprite.Width / 2);
             double dy = targetY - (Y + Sprite.Height / 2);
             double angle = System.Math.Atan2(dy, dx);
+            var canvas = world._canvas;
             switch (currentWeapon)
             {
                 case WeaponType.Rifle:
                     if (rifleAmmo > 0 && shootCooldown == 0)
                     {
-                        var bullet = new Bullet(X + Sprite.Width / 2, Y + Sprite.Height / 2, angle);
+                        var bullet = new Bullet(canvas, X + Sprite.Width / 2, Y + Sprite.Height / 2, angle);
                         world.AddObject(bullet);
                         rifleAmmo--;
                         shootCooldown = rifleCooldown;
@@ -103,7 +104,7 @@ namespace Game2D.Engine
                     {
                         for (int i = -1; i <= 1; i++)
                         {
-                            var bullet = new Bullet(X + Sprite.Width / 2, Y + Sprite.Height / 2, angle + i * 0.2);
+                            var bullet = new Bullet(canvas, X + Sprite.Width / 2, Y + Sprite.Height / 2, angle + i * 0.2);
                             world.AddObject(bullet);
                         }
                         shotgunAmmo--;
@@ -113,7 +114,7 @@ namespace Game2D.Engine
                 case WeaponType.Lasergun:
                     if (lasergunAmmo > 0 && shootCooldown == 0)
                     {
-                        var laser = new Laser(X + Sprite.Width / 2, Y + Sprite.Height / 2, angle);
+                        var laser = new Laser(canvas, X + Sprite.Width / 2, Y + Sprite.Height / 2, angle);
                         world.AddObject(laser);
                         lasergunAmmo--;
                         shootCooldown = lasergunCooldown;
@@ -200,5 +201,12 @@ namespace Game2D.Engine
         public int MaxShotgunAmmo => maxShotgunAmmo;
         public int LasergunAmmo => lasergunAmmo;
         public int MaxLasergunAmmo => maxLasergunAmmo;
+
+        public void ResetAmmo()
+        {
+            rifleAmmo = maxRifleAmmo;
+            shotgunAmmo = maxShotgunAmmo;
+            lasergunAmmo = maxLasergunAmmo;
+        }
     }
 } 

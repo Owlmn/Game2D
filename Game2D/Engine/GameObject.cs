@@ -35,6 +35,11 @@ namespace Game2D.Engine
             RepositionSprite();
         }
 
+        protected GameObject(Canvas canvas)
+        {
+            Canvas = canvas;
+        }
+
         protected GameObject() { }
 
         protected void RepositionSprite()

@@ -16,6 +16,7 @@ namespace Game2D.Engine
         private int maxZombies = 10;
         private Hero _heroCache;
         private bool isRendering = false;
+        public int Score { get; private set; } = 0;
 
         public GameWorld(Canvas canvas)
         {
@@ -72,6 +73,11 @@ namespace Game2D.Engine
             brush.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Project/images/MAP1.jpg"));
             brush.Stretch = System.Windows.Media.Stretch.UniformToFill;
             _canvas.Background = brush;
+        }
+
+        public void AddScore(int value)
+        {
+            Score += value;
         }
     }
 } 

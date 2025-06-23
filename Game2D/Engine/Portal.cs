@@ -13,7 +13,7 @@ namespace Game2D.Engine
             Y = y;
             Sprite = new Image
             {
-                Source = new BitmapImage(new Uri("pack://application:,,,/Project/images/portal.jpg")),
+                Source = new BitmapImage(new Uri("pack://application:,,,/Project/images/portal.png")),
                 Width = 64,
                 Height = 64
             };

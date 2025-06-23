@@ -4,6 +4,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Game2D.Engine;
 using System.Collections.Generic;
+using System.Windows.Controls;
 using System.Windows.Media;
 
 namespace Game2D
@@ -22,6 +23,15 @@ namespace Game2D
 
         public enum DifficultyLevel { Easy, Medium, Hard, Hardcore }
         private DifficultyLevel _selectedDifficulty = DifficultyLevel.Medium;
+
+        // --- Управление уровнями ---
+        private int currentLevelIndex = 0;
+        public static int CurrentLevelIndex { get; private set; } = 0;
+        private readonly Type[] levelTypes = new Type[] { typeof(Game2D.Engine.MAP), typeof(Game2D.Engine.MAP3), typeof(Game2D.Engine.MAP4), typeof(Game2D.Engine.MAP5) };
+        private GameObject currentPortal = null;
+        private int[] levelScoreThresholds = new int[] { 400, 600, 800 };
+        private bool portalSpawned = false;
+        private double[] levelCoefs = new double[] { 1.0, 1.5, 2.0 };
 
         public MainWindow()
         {
@@ -78,75 +88,59 @@ namespace Game2D
             WeaponLabel.Visibility = Visibility.Visible;
             TimerLabel.Visibility = Visibility.Visible;
             MessageLabel.Visibility = Visibility.Visible;
-            _gameWorld = new GameWorld(GameCanvas);
-            CurrentGameWorld = _gameWorld;
-            _hero = new Hero(200, 200);
-            _gameWorld.AddObject(_hero);
-            SpawnLevelObjects(_selectedDifficulty);
-            _gameWorld.Start();
+            currentLevelIndex = 0;
+            portalSpawned = false;
             _score = 0;
             _startTime = DateTime.Now;
             _gameOver = false;
+            _hero = new Hero(200, 200);
+            LoadLevel(currentLevelIndex);
             GameCanvas.Focus();
         }
 
-        private void SpawnLevelObjects(DifficultyLevel level)
+        private void LoadLevel(int levelIdx)
         {
-            // --- Стены горизонтальные ---
-            int[,] wallPositions = new int[,] {
-                {423, 283}, {463, 283}, {383, 323}, {343, 363}, {343, 481},
-                {383, 521}, {423, 561}, {463, 561}, {147, 283}, {187, 283}, {227, 283}, {267, 283}, {147, 127},
-                {267, 127}, {382, 206}, {422, 206}, {462, 206}, {502, 206}, {582, 88},{622, 88},{662, 88},{702, 88},{699, 246},
-                {739, 246},{779, 246},{819, 246},{859, 246}, {934, 324},{974, 324},{1014, 324},{934, 599},{974, 599},
-                {1014, 599},{1054,599},{1132, 324},{1172, 324}, {107, 639},{147, 639},{186, 716},{226, 716},{266,716},
-                {305, 639},{345, 639}, {502, 756},{542, 756},{582, 756}, {1307, 639},{1347, 639},{1386, 716},{1426, 716},{1466, 716},
-                {187, 10},{227, 10},{267, 10},{307, 10},{347, 10}, {387, 10},{427, 10},{467, 10},{507, 10}, {547, 10},
-                {587, 10},{627, 10},{667, 10},{707, 10},{747, 10}, {787, 10},{827, 10},{867, 10}, {907, 10},{947, 10},{987, 10},{972, 168},
-                {1012, 168},{1052, 168},{1092, 168}, {1347, 285},{1387, 285}, {1427, 285},{1467, 285}, {1347, 127},{1467, 127},{10,320}, {10, 515}
-            };
-            for (int i = 0; i < wallPositions.GetLength(0); i++)
-                _gameWorld.AddObject(new Wall(wallPositions[i,0], wallPositions[i,1], "wall_.png"));
+            GameCanvas.Children.Clear();
+            var levelType = levelTypes[levelIdx];
+            var coef = levelCoefs[levelIdx];
+            _gameWorld = (GameWorld)Activator.CreateInstance(levelType, GameCanvas);
+            CurrentGameWorld = _gameWorld;
+            CurrentLevelIndex = levelIdx;
+            if (_hero.Sprite != null && _hero.Sprite.Parent is Canvas oldCanvas)
+                oldCanvas.Children.Remove(_hero.Sprite);
+            _gameWorld.AddObject(_hero);
+            _hero.X = 200; _hero.Y = 200;
+            SpawnLevelObjects(_selectedDifficulty, levelIdx, coef);
+            _gameWorld.Start();
+            currentPortal = null;
+            portalSpawned = false;
+        }
 
-            // --- Стены вертикальные ---
-            int[,] wallPositions2 = new int[,] {
-                {10, 10}, {10, 50}, {10, 90}, {10, 130},{10, 170}, {10, 210},
-                {10, 250}, {10, 290}, {10, 540}, {10, 580}, {10, 620}, {10, 660},
-                {10, 700}, {10, 740},{10, 780}, {127, 148}, {127, 188}, {127, 228},
-                {127, 268}, {285, 148}, {285, 188}, {285, 228}, {285, 268},
-                {363, 30}, {363, 190}, {363, 340}, {403, 300}, {481, 301}, {363, 500},
-                {403, 540}, {481, 540}, {87, 660}, {87, 700},{167, 660}, {167, 700},
-                {284, 660}, {284, 700}, {364, 660}, {364, 700}, {600, 580}, {600, 620},
-                {600, 660}, {600, 700},{600, 740}, {600, 105}, {600, 145}, {600, 185},
-                {600, 225}, {600, 265}, {717, 382}, {717, 422},{717, 462}, {796, 580},
-                {796, 620}, {796, 660}, {796, 780}, {914, 580}, {993, 620}, {993, 660},
-                {993, 700}, {914, 343}, {914, 383}, {914, 423}, {874, 223}, {874, 183},
-                {954, 147}, {954, 107}, {363, 30}, {1190, 20}, {1210, 20}, {1190, 60}, {1210, 60},
-                {1190, 100}, {1210, 100}, {1190, 140}, {1210, 140}, {1190, 180}, {1210, 180},
-                {1190, 220}, {1210, 220}, {1190, 260}, {1210, 260}, {1190, 300}, {1210, 300},
-                {1190, 540}, {1210, 540}, {1190, 580}, {1210, 580}, {1190, 620}, {1210, 620},
-                {1190, 660}, {1210, 660}, {1190, 700}, {1210, 700}, {1190, 740}, {1210, 740}, {1190, 780}, {1210, 780},
-                {1287, 700}, {1287, 660}, {1366, 660}, {1366, 700}, {1486, 660}, {1486, 700},
-                {1327, 266}, {1327, 226}, {1327, 186}, {1327, 146}, {1485, 146}, {1485, 186}, {1485, 226}, {1485, 266}
-            };
-            for (int i = 0; i < wallPositions2.GetLength(0); i++)
-                _gameWorld.AddObject(new Wall(wallPositions2[i,0], wallPositions2[i,1], "wall_.png"));
-
-            // --- Кубы ---
-            int[,] wallPositions3 = new int[,] {
-                {108, 422}, {148, 422},{188, 382},{188, 462},
-                {776, 224}, {776, 620}, {1308, 422}, {1348, 422},{1388, 382},{1388, 462}
-            };
-            for (int i = 0; i < wallPositions3.GetLength(0); i++)
-                _gameWorld.AddObject(new Wall(wallPositions3[i,0], wallPositions3[i,1], "Cube.png"));
-
-            // --- Герой ---
-            _hero.X = 200; _hero.Y = 190;
-
-            // --- Враги ---
-            for (int i = 0; i < 5; i++)
-                _gameWorld.AddObject(new EnemyBeast(_hero, 300 + i*100, 400));
-            for (int i = 0; i < 3; i++)
-                _gameWorld.AddObject(new Zombi(_hero, 500 + i*120, 600));
+        private void SpawnLevelObjects(DifficultyLevel level, int levelIdx, double coef)
+        {
+            if (levelIdx == 0) // MAP
+            {
+                for (int i = 0; i < 5; i++)
+                    _gameWorld.AddObject(new EnemyBeast(_hero, 300 + i*100, 400, coef));
+                for (int i = 0; i < 3; i++)
+                    _gameWorld.AddObject(new Zombi(_hero, 500 + i*120, 600, coef));
+            }
+            else if (levelIdx == 1) // MAP3
+            {
+                for (int i = 0; i < 4; i++)
+                    _gameWorld.AddObject(new CosmoEnemy(_hero, 300 + i*120, 400, coef));
+                for (int i = 0; i < 2; i++)
+                    _gameWorld.AddObject(new ShotgunEnemy(_hero, 500 + i*180, 600, coef));
+            }
+            else if (levelIdx == 2) // MAP4
+            {
+                for (int i = 0; i < 4; i++)
+                    _gameWorld.AddObject(new RocketEnemy(_hero, 300 + i*120, 400, coef));
+            }
+            else if (levelIdx == 3) // MAP5 (босс)
+            {
+                _gameWorld.AddObject(new Boss(_hero, _gameWorld._canvas.ActualWidth/2-64, 100, coef));
+            }
         }
 
         private void MainMenu_KeyDown(object sender, KeyEventArgs e)
@@ -159,7 +153,15 @@ namespace Game2D
                     ShowMenu();
                 }
             }
-            if (_gameOver) return;
+            if (_gameOver)
+            {
+                if (e.Key == Key.Escape)
+                {
+                    ShowMenu();
+                    MessageLabel.Visibility = Visibility.Hidden;
+                }
+                return;
+            }
             // Только смена оружия и перезарядка
             if (e.Key == Key.R && _hero != null)
             {
@@ -199,32 +201,81 @@ namespace Game2D
             if (_gameOver) return;
             if (_gameWorld == null || _hero == null || MenuGrid.Visibility == Visibility.Visible)
                 return;
-            if (_hero != null)
-            {
-                HealthBar.Value = Math.Max(0, Math.Min(_hero.Health, _hero.MaxHealth));
-                AmmoLabel.Content = $"Ammo: {_hero.RifleAmmo}/{_hero.MaxRifleAmmo}";
-            }
-            // Счет: считаем количество убитых врагов (неактивных)
-            var killed = _gameWorld.Objects.FindAll(o => o is EnemyBeast enemy && !enemy.IsActive).Count;
-            if (killed != _score)
-            {
-                _score = killed;
-                ScoreLabel.Content = $"Score: {_score}";
-            }
-            // Таймер
+            // --- Инфо-блок ---
+            HealthBar.Value = Math.Max(0, Math.Min(_hero.Health, _hero.MaxHealth));
+            AmmoLabel.Content = $"Ammo: {_hero.RifleAmmo}/{_hero.MaxRifleAmmo}";
+            WeaponLabel.Content = $"Weapon: {_hero.CurrentWeapon}";
             var elapsed = DateTime.Now - _startTime;
             TimerLabel.Content = $"Time: {elapsed.Minutes:D2}:{elapsed.Seconds:D2}";
+            ScoreLabel.Content = $"Score: {_gameWorld.Score}";
+            // --- Переход на следующий уровень ---
+            if (currentLevelIndex < levelScoreThresholds.Length)
+            {
+                if (_gameWorld.Score >= levelScoreThresholds[currentLevelIndex] && !portalSpawned)
+                {
+                    SpawnPortalForLevel(currentLevelIndex);
+                    portalSpawned = true;
+                }
+            }
             // Проверка конца игры
             if (_hero != null && _hero.Health <= 0 && !_gameOver)
             {
                 GameOver();
             }
         }
+
+        private void SpawnPortalForLevel(int levelIdx)
+        {
+            double x = 0, y = 0;
+            GameObject portal = null;
+            switch (levelIdx)
+            {
+                case 0:
+                    x = GameCanvas.ActualWidth - 150; y = GameCanvas.ActualHeight / 2;
+                    portal = new Game2D.Engine.Portal(x, y);
+                    ((Game2D.Engine.Portal)portal).OnEnter = () => NextLevel();
+                    break;
+                case 1:
+                    x = GameCanvas.ActualWidth / 2; y = GameCanvas.ActualHeight - 200;
+                    portal = new Game2D.Engine.Portal2(x, y);
+                    ((Game2D.Engine.Portal2)portal).OnEnter = () => NextLevel();
+                    break;
+                case 2:
+                    x = GameCanvas.ActualWidth / 2 + 10; y = GameCanvas.ActualHeight - 300;
+                    portal = new Game2D.Engine.Portal3(x, y);
+                    ((Game2D.Engine.Portal3)portal).OnEnter = () => NextLevel();
+                    break;
+            }
+            if (portal != null)
+            {
+                _gameWorld.AddObject(portal);
+                currentPortal = portal;
+            }
+        }
+
+        private void NextLevel()
+        {
+            if (currentLevelIndex + 1 < levelTypes.Length)
+            {
+                currentLevelIndex++;
+                LoadLevel(currentLevelIndex);
+                _hero?.ResetAmmo();
+            }
+            else
+            {
+                // Победа
+                _gameOver = true;
+                MessageLabel.Content = "YOU WIN!";
+                _gameWorld.Stop();
+            }
+        }
+
         private void GameOver()
         {
             _gameOver = true;
-            MessageLabel.Content = "Game Over";
             _gameWorld.Stop();
+            MessageLabel.Content = "YOU DIED";
+            MessageLabel.Visibility = Visibility.Visible;
         }
     }
 }

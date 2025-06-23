@@ -18,3 +18,4 @@ D:\Универ\ООАиП_Кобзарь 4 семестр\Game2D\Game2D\obj\Deb
 D:\Универ\ООАиП_Кобзарь 4 семестр\Game2D\Game2D\obj\Debug\net9.0-windows\Game2D.pdb
 D:\Универ\ООАиП_Кобзарь 4 семестр\Game2D\Game2D\obj\Debug\net9.0-windows\Game2D.genruntimeconfig.cache
 D:\Универ\ООАиП_Кобзарь 4 семестр\Game2D\Game2D\obj\Debug\net9.0-windows\ref\Game2D.dll
+D:\Универ\ООАиП_Кобзарь 4 семестр\Game2D\Game2D\obj\Debug\net9.0-windows\Game2D.sourcelink.json

@@ -50,6 +50,7 @@ namespace Game2D.Engine
 
         public override void Update()
         {
+            if (!IsActive && Sprite.Parent is Canvas canvas) { canvas.Children.Remove(Sprite); return; }
             if (_hero == null || !_hero.IsAlive) return;
             double dx = _hero.X - X;
             double dy = _hero.Y - Y;
@@ -114,7 +115,8 @@ namespace Game2D.Engine
             var world = Game2D.MainWindow.CurrentGameWorld;
             if (world != null)
             {
-                var rocket = new Rocket(X + Sprite.Width / 2, Y + Sprite.Height / 2, angle);
+                var canvas = world._canvas;
+                var rocket = new Rocket(canvas, X + Sprite.Width / 2, Y + Sprite.Height / 2, angle);
                 world.AddObject(rocket);
             }
         }
@@ -128,7 +130,13 @@ namespace Game2D.Engine
         public void TakeDamage(int dmg)
         {
             health -= dmg;
-            if (health <= 0) IsActive = false;
+            if (health <= 0)
+            {
+                if (Sprite.Parent is Canvas canvas) canvas.Children.Remove(Sprite);
+                var world = Game2D.MainWindow.CurrentGameWorld;
+                world?.AddScore(130);
+                IsActive = false;
+            }
         }
         // Проверка возможности движения по смещению dx, dy
         private bool CanMove(double dx, double dy)
@@ -141,16 +149,7 @@ namespace Game2D.Engine
             double maxY = mainWindow.GameCanvas.ActualHeight - Sprite.Height;
             if (newX < 0 || newY < 0 || newX > maxX || newY > maxY)
                 return false;
-            var world = Game2D.MainWindow.CurrentGameWorld;
-            if (world != null)
-            {
-                Rect futureBounds = new Rect(newX, newY, Sprite.Width, Sprite.Height);
-                foreach (var obj in world.Objects)
-                {
-                    if (obj is Wall wall && wall.IsActive && futureBounds.IntersectsWith(wall.GetBounds()))
-                        return false;
-                }
-            }
+            // Убираем любые проверки на стены и препятствия
             return true;
         }
     }

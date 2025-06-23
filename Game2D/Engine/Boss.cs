@@ -64,7 +64,8 @@ namespace Game2D.Engine
             var world = Game2D.MainWindow.CurrentGameWorld;
             if (world != null)
             {
-                var rocket = new Rocket(X + Sprite.Width / 2, Y + Sprite.Height / 2, angle);
+                var canvas = world._canvas;
+                var rocket = new Rocket(canvas, X + Sprite.Width / 2, Y + Sprite.Height / 2, angle);
                 world.AddObject(rocket);
             }
         }
