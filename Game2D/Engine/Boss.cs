@@ -61,7 +61,7 @@ namespace Game2D.Engine
             double dx = _hero.X + _hero.Sprite.Width / 2 - (X + Sprite.Width / 2);
             double dy = _hero.Y + _hero.Sprite.Height / 2 - (Y + Sprite.Height / 2);
             double angle = Math.Atan2(dy, dx);
-            var world = Game2D.MainWindow.CurrentGameWorld;
+            var world = MainWindow.CurrentGameWorld;
             if (world != null)
             {
                 var canvas = world._canvas;
