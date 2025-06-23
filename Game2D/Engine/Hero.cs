@@ -49,13 +49,27 @@ namespace Game2D.Engine
             double maxY = mainWindow.GameCanvas.ActualHeight - Sprite.Height;
             if (newX < 0 || newY < 0 || newX > maxX || newY > maxY)
                 return false;
-            // Убираем любые проверки на стены и препятствия
+            // Проверка коллизий со стенами
+            var world = Game2D.MainWindow.CurrentGameWorld;
+            if (world != null)
+            {
+                var futureRect = new System.Windows.Rect(newX, newY, Sprite.Width, Sprite.Height);
+                foreach (var obj in world.Objects)
+                {
+                    if (!obj.IsActive) continue;
+                    if (obj is Wall || obj is Wall_gorizont || obj is Wall_vertical)
+                    {
+                        if (futureRect.IntersectsWith(obj.GetBounds()))
+                            return false;
+                    }
+                }
+            }
             return true;
         }
 
         public void MoveByKeys()
         {
-            double speed = 2; // Было 4, теперь в 2 раза меньше
+            double speed = 2.5; 
             double dx = 0, dy = 0;
     
             if (Keyboard.IsKeyDown(Key.W)) dy -= 1;

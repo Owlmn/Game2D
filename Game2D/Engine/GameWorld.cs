@@ -24,7 +24,6 @@ namespace Game2D.Engine
             _timer = new DispatcherTimer();
             _timer.Interval = System.TimeSpan.FromMilliseconds(1000.0 / 60.0); // 60 FPS, как в Greenfoot
             _timer.Tick += (s, e) => GameLoop();
-            SetBackground();
         }
 
         public void Start()
@@ -64,15 +63,6 @@ namespace Game2D.Engine
         public void AddObject(GameObject obj)
         {
             Objects.Add(obj);
-        }
-
-        private void SetBackground()
-        {
-            // Устанавливаем фоновое изображение уровня
-            ImageBrush brush = new ImageBrush();
-            brush.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Project/images/MAP1.jpg"));
-            brush.Stretch = System.Windows.Media.Stretch.UniformToFill;
-            _canvas.Background = brush;
         }
 
         public void AddScore(int value)

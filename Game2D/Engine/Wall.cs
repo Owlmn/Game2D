@@ -13,7 +13,7 @@ namespace Game2D.Engine
             Sprite = new Image
             {
                 Source = new BitmapImage(new Uri($"pack://application:,,,/Project/images/{imageName}")),
-                Width = 48,
+                Width = 12,
                 Height = 48
             };
         }

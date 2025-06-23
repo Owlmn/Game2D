@@ -1,5 +1,3 @@
-# Игнорировать папку .idea (настройки IDE JetBrains)
+.vs/
 .idea/
-
-# Игнорировать пользовательские настройки решения Rider/Resharper
-Game2D.sln.DotSettings.user 
+Game2D/bin/

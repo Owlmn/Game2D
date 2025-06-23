@@ -19,8 +19,8 @@ namespace Game2D.Engine
             Sprite = new Image
             {
                 Source = new BitmapImage(new Uri("pack://application:,,,/Project/images/laser.png")),
-                Width = 32,
-                Height = 8
+                Width = 48,
+                Height = 48
             };
             Sprite.RenderTransform = new System.Windows.Media.RotateTransform(angle * 180 / Math.PI, 16, 4);
         }
@@ -81,9 +81,33 @@ namespace Game2D.Engine
                     }
                     if (obj is Boss boss && this.GetBounds().IntersectsWith(boss.GetBounds()))
                     {
+                        boss.TakeDamage(damage);
                         if (Sprite.Parent is Canvas canvas) canvas.Children.Remove(Sprite);
                         this.IsActive = false;
                         break;
+                    }
+                    if (obj is Boss_Hand1 hand1 && this.GetBounds().IntersectsWith(hand1.GetBounds()))
+                    {
+                        hand1.TakeDamage(damage);
+                        if (Sprite.Parent is Canvas canvas) canvas.Children.Remove(Sprite);
+                        this.IsActive = false;
+                        break;
+                    }
+                    if (obj is Boss_Hand2 hand2 && this.GetBounds().IntersectsWith(hand2.GetBounds()))
+                    {
+                        hand2.TakeDamage(damage);
+                        if (Sprite.Parent is Canvas canvas) canvas.Children.Remove(Sprite);
+                        this.IsActive = false;
+                        break;
+                    }
+                    if (obj is Wall || obj is Wall_gorizont || obj is Wall_vertical)
+                    {
+                        if (this.GetBounds().IntersectsWith(obj.GetBounds()))
+                        {
+                            if (Sprite.Parent is Canvas canvas) canvas.Children.Remove(Sprite);
+                            this.IsActive = false;
+                            break;
+                        }
                     }
                 }
             }

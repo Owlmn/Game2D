@@ -23,6 +23,14 @@ namespace Game2D.Engine
         private double PrevX;
         private double PrevY;
 
+        public ShotgunEnemy(Hero hero, double x, double y, double hpCoef, double dmgCoef, double speedCoef)
+            : this(hero, x, y)
+        {
+            this.health = (int)(150 * hpCoef);
+            // Урон реализован через ShotgunPellet, можно добавить поле damage если нужно
+            this.speed = (2 / 2.3) * speedCoef;
+        }
+
         public ShotgunEnemy(Hero hero, double x, double y, double coef = 1)
         {
             X = x;
@@ -62,6 +70,9 @@ namespace Game2D.Engine
                     double stepY = speed * dy / distance;
                     X += stepX;
                     Y += stepY;
+                    // Поворот к герою
+                    double angle = Math.Atan2(dy, dx) * 180 / Math.PI;
+                    Sprite.RenderTransform = new System.Windows.Media.RotateTransform(angle, Sprite.Width/2, Sprite.Height/2);
                     // Анимация (если есть несколько кадров)
                     animationTimer++;
                     if (animationTimer >= frameDelay)

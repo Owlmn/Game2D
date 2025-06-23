@@ -45,6 +45,16 @@ namespace Game2D.Engine
             {
                 foreach (var obj in world.Objects)
                 {
+                    if (!obj.IsActive) continue;
+                    if (obj is Wall || obj is Wall_gorizont || obj is Wall_vertical)
+                    {
+                        if (this.GetBounds().IntersectsWith(obj.GetBounds()))
+                        {
+                            if (Sprite.Parent is Canvas canvas) canvas.Children.Remove(Sprite);
+                            this.IsActive = false;
+                            break;
+                        }
+                    }
                     if (obj is EnemyBeast enemy && enemy.IsActive && this.GetBounds().IntersectsWith(enemy.GetBounds()))
                     {
                         enemy.TakeDamage(50);
@@ -76,6 +86,13 @@ namespace Game2D.Engine
                     if (obj is Zombi zombi && zombi.IsActive && this.GetBounds().IntersectsWith(zombi.GetBounds()))
                     {
                         zombi.TakeDamage(50);
+                        if (Sprite.Parent is Canvas canvas) canvas.Children.Remove(Sprite);
+                        this.IsActive = false;
+                        break;
+                    }
+                    if (obj is Boss boss && this.GetBounds().IntersectsWith(boss.GetBounds()))
+                    {
+                        boss.TakeDamage(50);
                         if (Sprite.Parent is Canvas canvas) canvas.Children.Remove(Sprite);
                         this.IsActive = false;
                         break;

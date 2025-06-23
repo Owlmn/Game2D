@@ -37,12 +37,12 @@ namespace Game2D.Engine
             };
         }
 
-        public EnemyBeast(Hero hero, double x, double y, double coef)
+        public EnemyBeast(Hero hero, double x, double y, double hpCoef, double dmgCoef, double speedCoef)
             : this(hero, x, y)
         {
-            this.Health = (int)(120 * coef);
-            this.damage = (int)(50 * coef);
-            // Можно добавить другие параметры, если нужно
+            this.Health = (int)(120 * hpCoef);
+            this.damage = (int)(50 * dmgCoef);
+            this.speed = (2.5 / 2.3) * speedCoef;
         }
 
         private double animationTimer = 0;
@@ -69,7 +69,8 @@ namespace Game2D.Engine
                 double stepY = speed * dy / dist;
                 X += stepX;
                 Y += stepY;
-                // Анимация только при движении
+                double angle = Math.Atan2(dy, dx) * 180 / Math.PI;
+                Sprite.RenderTransform = new System.Windows.Media.RotateTransform(angle, Sprite.Width/2, Sprite.Height/2);
                 animationTimer += AnimationSpeed;
                 if (animationTimer >= walkFrames.Length)
                     animationTimer = 0;
@@ -94,7 +95,6 @@ namespace Game2D.Engine
             if (Health <= 0)
             {
                 if (Sprite.Parent is Canvas canvas) canvas.Children.Remove(Sprite);
-                // Удаляем все кадры анимации, если они вдруг были добавлены
                 if (walkFrames != null)
                 {
                     foreach (var frame in walkFrames)
@@ -119,7 +119,21 @@ namespace Game2D.Engine
             double maxY = mainWindow.GameCanvas.ActualHeight - Sprite.Height;
             if (newX < 0 || newY < 0 || newX > maxX || newY > maxY)
                 return false;
-            // Убираем любые проверки на стены и препятствия
+            // Проверка коллизий со стенами
+            var world = Game2D.MainWindow.CurrentGameWorld;
+            if (world != null)
+            {
+                var futureRect = new System.Windows.Rect(newX, newY, Sprite.Width, Sprite.Height);
+                foreach (var obj in world.Objects)
+                {
+                    if (!obj.IsActive) continue;
+                    if (obj is Wall || obj is Wall_gorizont || obj is Wall_vertical)
+                    {
+                        if (futureRect.IntersectsWith(obj.GetBounds()))
+                            return false;
+                    }
+                }
+            }
             return true;
         }
     }

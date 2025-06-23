@@ -44,12 +44,14 @@ namespace Game2D.Engine
                 {
                     if (obj is Wall wall && wall.IsActive && this.GetBounds().IntersectsWith(wall.GetBounds()))
                     {
+                        if (Sprite.Parent is Canvas canvas) canvas.Children.Remove(Sprite);
                         this.IsActive = false;
                         break;
                     }
                     if (obj is Hero hero && hero.IsAlive && this.GetBounds().IntersectsWith(hero.GetBounds()))
                     {
                         hero.Health -= damage;
+                        if (Sprite.Parent is Canvas canvas) canvas.Children.Remove(Sprite);
                         this.IsActive = false;
                         break;
                     }

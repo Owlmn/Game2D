@@ -25,6 +25,13 @@ namespace Game2D.Engine
         private bool isActive = false;
         private bool isInShootingRange = false;
 
+        public RocketEnemy(Hero hero, double x, double y, double hpCoef, double dmgCoef, double speedCoef)
+            : this(hero, x, y)
+        {
+            this.health = (int)(150 * hpCoef);
+            this.speed = (2 / 2.3) * speedCoef;
+        }
+
         public RocketEnemy(Hero hero, double x, double y, double coef = 1)
         {
             X = x;
@@ -66,7 +73,10 @@ namespace Game2D.Engine
                     double stepY = speed * dy / distance;
                     X += stepX;
                     Y += stepY;
+                    double angle = Math.Atan2(dy, dx) * 180 / Math.PI;
+                    Sprite.RenderTransform = new System.Windows.Media.RotateTransform(angle, Sprite.Width/2, Sprite.Height/2);
                 }
+                // Стрельба и анимация всегда, если в зоне стрельбы
                 if (isInShootingRange && !isAnimating)
                 {
                     shootCooldown++;
@@ -149,7 +159,21 @@ namespace Game2D.Engine
             double maxY = mainWindow.GameCanvas.ActualHeight - Sprite.Height;
             if (newX < 0 || newY < 0 || newX > maxX || newY > maxY)
                 return false;
-            // Убираем любые проверки на стены и препятствия
+            // Проверка коллизий со стенами
+            var world = Game2D.MainWindow.CurrentGameWorld;
+            if (world != null)
+            {
+                var futureRect = new System.Windows.Rect(newX, newY, Sprite.Width, Sprite.Height);
+                foreach (var obj in world.Objects)
+                {
+                    if (!obj.IsActive) continue;
+                    if (obj is Wall || obj is Wall_gorizont || obj is Wall_vertical)
+                    {
+                        if (futureRect.IntersectsWith(obj.GetBounds()))
+                            return false;
+                    }
+                }
+            }
             return true;
         }
     }

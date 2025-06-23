@@ -23,6 +23,14 @@ namespace Game2D.Engine
         private bool isInShootingRange = false;
         private int frameDelay = 8; // задержка между кадрами анимации
 
+        public CosmoEnemy(Hero hero, double x, double y, double hpCoef, double dmgCoef, double speedCoef)
+            : this(hero, x, y)
+        {
+            this.health = (int)(120 * hpCoef);
+            // Урон у космо-врага реализован через пули, можно масштабировать скорость стрельбы или добавить поле damage если нужно
+            this.speed = (2 / 2.3) * speedCoef;
+        }
+
         public CosmoEnemy(Hero hero, double x, double y, double coef = 1)
         {
             X = x;
@@ -44,13 +52,29 @@ namespace Game2D.Engine
         // Проверка возможности движения по смещению dx, dy
         private bool CanMove(double dx, double dy)
         {
-            var mainWindow = Application.Current.MainWindow as MainWindow;
-            if (mainWindow?.GameCanvas == null) return false;
+            var mainWindow = System.Windows.Application.Current.MainWindow as Game2D.MainWindow;
+            if (mainWindow == null || mainWindow.GameCanvas == null) return false;
             double newX = X + dx;
             double newY = Y + dy;
-            if (newX < 0 || newY < 0 || newX > mainWindow.GameCanvas.ActualWidth - Sprite.Width || newY > mainWindow.GameCanvas.ActualHeight - Sprite.Height)
+            double maxX = mainWindow.GameCanvas.ActualWidth - Sprite.Width;
+            double maxY = mainWindow.GameCanvas.ActualHeight - Sprite.Height;
+            if (newX < 0 || newY < 0 || newX > maxX || newY > maxY)
                 return false;
-            // Убираем любые проверки на стены и препятствия
+            // Проверка коллизий со стенами
+            var world = Game2D.MainWindow.CurrentGameWorld;
+            if (world != null)
+            {
+                var futureRect = new System.Windows.Rect(newX, newY, Sprite.Width, Sprite.Height);
+                foreach (var obj in world.Objects)
+                {
+                    if (!obj.IsActive) continue;
+                    if (obj is Wall || obj is Wall_gorizont || obj is Wall_vertical)
+                    {
+                        if (futureRect.IntersectsWith(obj.GetBounds()))
+                            return false;
+                    }
+                }
+            }
             return true;
         }
         
@@ -68,22 +92,19 @@ namespace Game2D.Engine
     
             if (isActive)
             {
-                // Движение к герою
                 if (distance > 1)
                 {
                     double stepX = speed * dx / distance;
                     double stepY = speed * dy / distance;
-            
                     if (CanMove(stepX, stepY))
                     {
                         X += stepX;
                         Y += stepY;
-                
-                        // Плавная анимация
+                        double angle = Math.Atan2(dy, dx) * 180 / Math.PI;
+                        Sprite.RenderTransform = new System.Windows.Media.RotateTransform(angle, Sprite.Width/2, Sprite.Height/2);
                         animationTimer += (int)AnimationSpeed;
                         if (animationTimer >= walkFrames.Length)
                             animationTimer = 0;
-                
                         Sprite.Source = walkFrames[(int)animationTimer];
                     }
                 }
