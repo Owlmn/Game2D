@@ -1,0 +1,13 @@
+#BlueJ class context
+comment0.target=Bullet
+comment1.params=startX\ startY\ angle
+comment1.target=Bullet(int,\ int,\ double)
+comment2.params=
+comment2.target=void\ act()
+comment3.params=
+comment3.target=void\ MoveRound()
+comment4.params=
+comment4.target=boolean\ checkCollision()
+comment5.params=image
+comment5.target=void\ removeWhiteBackground(greenfoot.GreenfootImage)
+numComments=6

@@ -1,0 +1,13 @@
+#BlueJ class context
+comment0.target=Laser
+comment1.params=angle
+comment1.target=Laser(double)
+comment2.params=
+comment2.target=void\ act()
+comment3.params=
+comment3.target=boolean\ isInWorld()
+comment4.params=
+comment4.target=void\ MoveLaser()
+comment5.params=
+comment5.target=boolean\ checkCollision()
+numComments=6

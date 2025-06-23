@@ -1,0 +1,5 @@
+#BlueJ class context
+comment0.target=Wall_vertical
+comment1.params=startX\ startY
+comment1.target=Wall_vertical(int,\ int)
+numComments=2

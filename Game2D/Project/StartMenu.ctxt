@@ -1,0 +1,12 @@
+#BlueJ class context
+comment0.target=StartMenu
+comment0.text=\r\n\ Write\ a\ description\ of\ class\ StartMenu\ here.\r\n\ \r\n\ @author\ (your\ name)\ \r\n\ @version\ (a\ version\ number\ or\ a\ date)\r\n
+comment1.params=
+comment1.target=StartMenu()
+comment2.params=difficulty
+comment2.target=void\ setDifficulty(Diff)
+comment3.params=
+comment3.target=Diff\ getDifficulty()
+comment4.params=
+comment4.target=void\ prepare()
+numComments=5

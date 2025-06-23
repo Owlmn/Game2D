@@ -1,0 +1,9 @@
+#BlueJ class context
+comment0.target=Explosion
+comment1.params=
+comment1.target=Explosion()
+comment2.params=
+comment2.target=void\ act()
+comment3.params=image
+comment3.target=void\ removeWhiteBackground(greenfoot.GreenfootImage)
+numComments=4

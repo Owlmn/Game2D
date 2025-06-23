@@ -1,0 +1,23 @@
+#BlueJ class context
+comment0.target=Enemy_beast
+comment1.params=startX\ startY\ startDirection\ coef
+comment1.target=Enemy_beast(int,\ int,\ int,\ double)
+comment10.params=image
+comment10.target=void\ removeWhiteBackground(greenfoot.GreenfootImage)
+comment2.params=
+comment2.target=void\ act()
+comment3.params=
+comment3.target=void\ followHero()
+comment4.params=dx\ dy
+comment4.target=void\ move(int,\ int)
+comment5.params=dx\ dy
+comment5.target=boolean\ canMove(int,\ int)
+comment6.params=
+comment6.target=void\ checkCollisionWithHero()
+comment7.params=
+comment7.target=void\ animate()
+comment8.params=dx\ dy
+comment8.target=void\ updateRotation(int,\ int)
+comment9.params=
+comment9.target=Hero\ getHero()
+numComments=11

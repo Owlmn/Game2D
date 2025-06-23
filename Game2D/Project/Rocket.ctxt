@@ -1,0 +1,15 @@
+#BlueJ class context
+comment0.target=Rocket
+comment1.params=angle\ coef
+comment1.target=Rocket(int,\ double)
+comment2.params=
+comment2.target=void\ act()
+comment3.params=
+comment3.target=void\ moveRocket()
+comment4.params=
+comment4.target=boolean\ checkCollision()
+comment5.params=
+comment5.target=void\ createExplosion()
+comment6.params=image
+comment6.target=void\ removeWhiteBackground(greenfoot.GreenfootImage)
+numComments=7

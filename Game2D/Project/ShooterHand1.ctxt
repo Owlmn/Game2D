@@ -1,0 +1,9 @@
+#BlueJ class context
+comment0.target=ShooterHand1
+comment1.params=koef
+comment1.target=void\ set_coef(double)
+comment2.params=
+comment2.target=void\ act()
+comment3.params=
+comment3.target=void\ shootFanAtHero()
+numComments=4

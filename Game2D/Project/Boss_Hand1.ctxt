@@ -1,0 +1,21 @@
+#BlueJ class context
+comment0.target=Boss_Hand1
+comment1.params=coef
+comment1.target=void\ set_damage(int)
+comment2.params=
+comment2.target=void\ act()
+comment3.params=speed
+comment3.target=void\ setSpeed(int)
+comment4.params=type
+comment4.target=void\ setMoveType(int)
+comment5.params=dir
+comment5.target=void\ setDirection(int)
+comment6.params=
+comment6.target=void\ movePattern()
+comment7.params=
+comment7.target=boolean\ checkOutOfBounds()
+comment8.params=
+comment8.target=void\ checkHeroCollision()
+comment9.params=
+comment9.target=Hero\ getNearestHero()
+numComments=10
