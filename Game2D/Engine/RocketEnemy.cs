@@ -10,7 +10,7 @@ namespace Game2D.Engine
         private Hero _hero;
         private double koef = 1;
         private int shootCooldown = 0;
-        private int shootDelay = 40; // ~0.66 сек при 60 FPS
+        private int shootDelay = 40; 
         private int health = 150;
         private const int DETECTION_RANGE = 400;
         private const int SHOOTING_RANGE = 250;
@@ -76,7 +76,6 @@ namespace Game2D.Engine
                     double angle = Math.Atan2(dy, dx) * 180 / Math.PI;
                     Sprite.RenderTransform = new System.Windows.Media.RotateTransform(angle, Sprite.Width/2, Sprite.Height/2);
                 }
-                // Стрельба и анимация всегда, если в зоне стрельбы
                 if (isInShootingRange && !isAnimating)
                 {
                     shootCooldown++;
@@ -148,7 +147,6 @@ namespace Game2D.Engine
                 IsActive = false;
             }
         }
-        // Проверка возможности движения по смещению dx, dy
         private bool CanMove(double dx, double dy)
         {
             var mainWindow = System.Windows.Application.Current.MainWindow as Game2D.MainWindow;
@@ -159,7 +157,6 @@ namespace Game2D.Engine
             double maxY = mainWindow.GameCanvas.ActualHeight - Sprite.Height;
             if (newX < 0 || newY < 0 || newX > maxX || newY > maxY)
                 return false;
-            // Проверка коллизий со стенами
             var world = Game2D.MainWindow.CurrentGameWorld;
             if (world != null)
             {

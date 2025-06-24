@@ -1,3 +1,4 @@
+using System;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Windows.Input;
@@ -13,15 +14,15 @@ namespace Game2D.Engine
         public int Health { get; set; }
         public bool IsAlive => Health > 0;
 
-        private int rifleAmmo = 30;
-        private int maxRifleAmmo = 30;
+        private int rifleAmmo = 50;
+        private int maxRifleAmmo = 50;
         public int RifleAmmo => rifleAmmo;
         public int MaxRifleAmmo => maxRifleAmmo;
 
         public enum WeaponType { Rifle, Shotgun, Lasergun }
         private WeaponType currentWeapon = WeaponType.Rifle;
-        private int shotgunAmmo = 5, maxShotgunAmmo = 5;
-        private int lasergunAmmo = 10, maxLasergunAmmo = 10;
+        private int shotgunAmmo = 30, maxShotgunAmmo = 30;
+        private int lasergunAmmo = 45, maxLasergunAmmo = 45;
         private int shootCooldown = 0;
         private int rifleCooldown = 10, shotgunCooldown = 40, lasergunCooldown = 20;
 

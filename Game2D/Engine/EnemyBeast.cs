@@ -17,7 +17,7 @@ namespace Game2D.Engine
         private int animationIndex = 0;
         private int animationSpeed = 1;
         private int frameCounter = 0;
-        private int frameDelay = 8; // задержка между кадрами анимации
+        private int frameDelay = 8;
 
         public EnemyBeast(Hero hero, double x, double y)
         {
@@ -46,7 +46,7 @@ namespace Game2D.Engine
         }
 
         private double animationTimer = 0;
-        private const double AnimationSpeed = 0.1; // Скорость анимации
+        private const double AnimationSpeed = 0.1;
 
         public override Rect GetBounds()
         {
@@ -107,8 +107,7 @@ namespace Game2D.Engine
                 IsActive = false;
             }
         }
-
-        // Проверка возможности движения по смещению dx, dy
+        
         private bool CanMove(double dx, double dy)
         {
             var mainWindow = System.Windows.Application.Current.MainWindow as Game2D.MainWindow;

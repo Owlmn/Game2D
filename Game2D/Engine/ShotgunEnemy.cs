@@ -10,13 +10,13 @@ namespace Game2D.Engine
         private Hero _hero;
         private double koef = 1;
         private int shootCooldown = 0;
-        private int shootDelay = 45; // ~0.75 сек при 60 FPS
+        private int shootDelay = 45;
         private int health = 150;
         private const int DETECTION_RANGE = 250;
         private const int SHOOTING_RANGE = 200;
         private double speed = 2 / 2.3;
         private bool isActive = false;
-        private int frameDelay = 8; // задержка между кадрами анимации
+        private int frameDelay = 8; 
         private BitmapImage[] walkFrames;
         private int currentFrame = 0;
         private int animationTimer = 0;
@@ -27,7 +27,6 @@ namespace Game2D.Engine
             : this(hero, x, y)
         {
             this.health = (int)(150 * hpCoef);
-            // Урон реализован через ShotgunPellet, можно добавить поле damage если нужно
             this.speed = (2 / 2.3) * speedCoef;
         }
 
@@ -38,7 +37,6 @@ namespace Game2D.Engine
             _hero = hero;
             koef = coef;
             health = (int)(150 * koef);
-            // Если есть несколько кадров, используем их, иначе один
             walkFrames = new BitmapImage[1];
             walkFrames[0] = new BitmapImage(new Uri("pack://application:,,,/Project/images/shouterenemy.png"));
             Sprite = new Image
@@ -70,10 +68,8 @@ namespace Game2D.Engine
                     double stepY = speed * dy / distance;
                     X += stepX;
                     Y += stepY;
-                    // Поворот к герою
                     double angle = Math.Atan2(dy, dx) * 180 / Math.PI;
                     Sprite.RenderTransform = new System.Windows.Media.RotateTransform(angle, Sprite.Width/2, Sprite.Height/2);
-                    // Анимация (если есть несколько кадров)
                     animationTimer++;
                     if (animationTimer >= frameDelay)
                     {
@@ -82,7 +78,6 @@ namespace Game2D.Engine
                         Sprite.Source = walkFrames[currentFrame];
                     }
                 }
-                // Стрельба
                 int level = Game2D.MainWindow.CurrentLevelIndex;
                 int localShootDelay = shootDelay;
                 double pelletSpeed = 8;

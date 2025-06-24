@@ -10,7 +10,7 @@ namespace Game2D.Engine
         private Hero _hero;
         private double koef = 1;
         private int shootCooldown = 0;
-        private int shootDelay = 30; // ~0.5 сек при 60 FPS
+        private int shootDelay = 30;
         private int health = 120;
         private const int DETECTION_RANGE = 320;
         private const int SHOOTING_RANGE = 250;
@@ -21,13 +21,12 @@ namespace Game2D.Engine
         private int animationTimer = 0;
         private bool isActive = false;
         private bool isInShootingRange = false;
-        private int frameDelay = 8; // задержка между кадрами анимации
+        private int frameDelay = 8;
 
         public CosmoEnemy(Hero hero, double x, double y, double hpCoef, double dmgCoef, double speedCoef)
             : this(hero, x, y)
         {
             this.health = (int)(120 * hpCoef);
-            // Урон у космо-врага реализован через пули, можно масштабировать скорость стрельбы или добавить поле damage если нужно
             this.speed = (2 / 2.3) * speedCoef;
         }
 
@@ -48,8 +47,7 @@ namespace Game2D.Engine
                 Height = 48
             };
         }
-
-        // Проверка возможности движения по смещению dx, dy
+        
         private bool CanMove(double dx, double dy)
         {
             var mainWindow = System.Windows.Application.Current.MainWindow as Game2D.MainWindow;
@@ -60,7 +58,6 @@ namespace Game2D.Engine
             double maxY = mainWindow.GameCanvas.ActualHeight - Sprite.Height;
             if (newX < 0 || newY < 0 || newX > maxX || newY > maxY)
                 return false;
-            // Проверка коллизий со стенами
             var world = Game2D.MainWindow.CurrentGameWorld;
             if (world != null)
             {
@@ -78,7 +75,7 @@ namespace Game2D.Engine
             return true;
         }
         
-        private const double AnimationSpeed = 0.1; // Скорость анимации
+        private const double AnimationSpeed = 0.1;
         public override void Update()
         {
             if (!IsActive && Sprite.Parent is Canvas canvas) { canvas.Children.Remove(Sprite); return; }
@@ -145,7 +142,6 @@ namespace Game2D.Engine
             if (health <= 0)
             {
                 if (Sprite.Parent is Canvas canvas) canvas.Children.Remove(Sprite);
-                // Удаляем все кадры анимации, если они вдруг были добавлены
                 if (walkFrames != null)
                 {
                     foreach (var frame in walkFrames)

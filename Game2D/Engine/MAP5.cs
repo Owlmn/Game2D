@@ -10,7 +10,6 @@ namespace Game2D.Engine
         public MAP5(Canvas canvas) : base(canvas)
         {
             SetBackground("MAP5.jpg");
-            // Не добавляем никаких объектов на фон
         }
         private void SetBackground(string imageName)
         {

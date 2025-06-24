@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -5,7 +6,6 @@ using System.Windows.Media.Imaging;
 
 namespace Game2D.Engine
 {
-    /// <summary>Base class for everything that lives in the world.</summary>
     public abstract class GameObject
     {
         protected readonly Canvas Canvas;

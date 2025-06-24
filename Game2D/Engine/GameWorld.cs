@@ -51,11 +51,9 @@ namespace Game2D.Engine
 
         private void GameLoop()
         {
-            // 1. Update logic
             foreach (var obj in Objects.ToArray())
                 obj.Update();
             Objects.RemoveAll(o => !o.IsActive);
-            // 2. Draw (только перемещаем спрайты, не очищаем Canvas)
             foreach (var obj in Objects)
                 obj.Draw(_canvas);
         }
@@ -64,6 +62,13 @@ namespace Game2D.Engine
         {
             Objects.Add(obj);
         }
+
+        public void AddGameObject(GameObject obj)
+        {
+            Objects.Add(obj);
+        }
+
+        public List<GameObject> gameObjects => Objects;
 
         public void AddScore(int value)
         {

@@ -10,7 +10,7 @@
         <Canvas Name="GameCanvas" Background="Black" Focusable="True"/>
         <ProgressBar Name="HealthBar" Height="24" Width="300" Minimum="0" Maximum="3000" Value="3000" Margin="10,10,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"/>
         <Label Name="ScoreLabel" Content="Score: 0" FontSize="20" Foreground="White" Background="Black" Margin="10,40,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"/>
-        <Label Name="AmmoLabel" Content="Ammo: 30" FontSize="20" Foreground="White" Background="Black" Margin="10,70,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+        <Label Name="AmmoLabel" FontSize="20" Foreground="White" Background="Black" Margin="10,70,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"/>
         <Label Name="WeaponLabel" Content="Weapon: Rifle" FontSize="20" Foreground="White" Background="Black" Margin="10,130,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"/>
         <Label Name="TimerLabel" Content="Time: 00:00" FontSize="20" Foreground="White" Background="Black" Margin="10,100,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"/>
         <Label Name="MessageLabel" Content="" FontSize="48" Foreground="Red" Background="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
@@ -67,21 +67,92 @@
             </Button>
           </StackPanel>
         </Grid>
-        <Grid Name="ControlsGrid" Background="#CC000000" Visibility="Collapsed" Panel.ZIndex="20">
+        <Grid Name="ControlsGrid" Background="Black" Visibility="Collapsed" Panel.ZIndex="20">
+          <Image Source="Project/images/menuBackground.png" Stretch="Fill" Opacity="0.7"/>
           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-            <Image Source="Project/images/controls.png" Width="300"/>
-            <Image Source="Project/images/wasd.png" Width="300"/>
+            <Image Source="Project/images/controls.png" Width="300" Margin="0,0,0,20"/>
+            <Image Source="Project/images/wasd.png" Width="300" Margin="0,0,0,20"/>
+            <TextBlock Text="1, 2, 3 — переключение оружия" Foreground="White" FontSize="24" TextAlignment="Center" Margin="0,0,0,20"/>
             <TextBlock Text="ESC — назад в меню" Foreground="White" FontSize="24" TextAlignment="Center"/>
           </StackPanel>
         </Grid>
-        <Grid Name="DifficultyGrid" Background="#CC000000" Visibility="Collapsed" Panel.ZIndex="20">
+        <Grid Name="DifficultyGrid" Background="Black" Visibility="Collapsed" Panel.ZIndex="20">
+          <Image Source="Project/images/menuBackground.png" Stretch="Fill" Opacity="0.7"/>
           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-            <TextBlock Text="Выберите сложность" Foreground="White" FontSize="32" TextAlignment="Center"/>
-            <Button Name="EasyButton" Content="Лёгкий" Width="250" Height="50" FontSize="24"/>
-            <Button Name="MediumButton" Content="Средний" Width="250" Height="50" FontSize="24"/>
-            <Button Name="HardButton" Content="Сложный" Width="250" Height="50" FontSize="24"/>
-            <Button Name="HardcoreButton" Content="Хардкор" Width="250" Height="50" FontSize="24"/>
-            <TextBlock Text="ESC — назад в меню" Foreground="White" FontSize="20" TextAlignment="Center"/>
+            <TextBlock Text="ВЫБЕРИТЕ СЛОЖНОСТЬ" Foreground="White" FontSize="36" TextAlignment="Center" FontWeight="Bold" Margin="0,0,0,30"/>
+            <Button Name="EasyButton" Width="300" Height="60" Margin="0,10">
+              <Button.Template>
+                <ControlTemplate TargetType="Button">
+                  <Border Background="#4CAF50" CornerRadius="8" BorderBrush="#66BB6A" BorderThickness="2">
+                    <TextBlock Text="ЛЁГКИЙ" Foreground="White" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                  </Border>
+                  <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                      <Setter Property="Background" Value="#66BB6A"/>
+                      <Setter Property="BorderBrush" Value="#81C784"/>
+                    </Trigger>
+                    <Trigger Property="IsPressed" Value="True">
+                      <Setter Property="Background" Value="#388E3C"/>
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </Button.Template>
+            </Button>
+            <Button Name="MediumButton" Width="300" Height="60" Margin="0,10">
+              <Button.Template>
+                <ControlTemplate TargetType="Button">
+                  <Border Background="#FF9800" CornerRadius="8" BorderBrush="#FFB74D" BorderThickness="2">
+                    <TextBlock Text="СРЕДНИЙ" Foreground="White" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                  </Border>
+                  <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                      <Setter Property="Background" Value="#FFB74D"/>
+                      <Setter Property="BorderBrush" Value="#FFCC02"/>
+                    </Trigger>
+                    <Trigger Property="IsPressed" Value="True">
+                      <Setter Property="Background" Value="#F57C00"/>
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </Button.Template>
+            </Button>
+            <Button Name="HardButton" Width="300" Height="60" Margin="0,10">
+              <Button.Template>
+                <ControlTemplate TargetType="Button">
+                  <Border Background="#F44336" CornerRadius="8" BorderBrush="#EF5350" BorderThickness="2">
+                    <TextBlock Text="СЛОЖНЫЙ" Foreground="White" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                  </Border>
+                  <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                      <Setter Property="Background" Value="#EF5350"/>
+                      <Setter Property="BorderBrush" Value="#E57373"/>
+                    </Trigger>
+                    <Trigger Property="IsPressed" Value="True">
+                      <Setter Property="Background" Value="#D32F2F"/>
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </Button.Template>
+            </Button>
+            <Button Name="HardcoreButton" Width="300" Height="60" Margin="0,10">
+              <Button.Template>
+                <ControlTemplate TargetType="Button">
+                  <Border Background="#9C27B0" CornerRadius="8" BorderBrush="#BA68C8" BorderThickness="2">
+                    <TextBlock Text="ХАРДКОР" Foreground="White" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                  </Border>
+                  <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                      <Setter Property="Background" Value="#BA68C8"/>
+                      <Setter Property="BorderBrush" Value="#CE93D8"/>
+                    </Trigger>
+                    <Trigger Property="IsPressed" Value="True">
+                      <Setter Property="Background" Value="#7B1FA2"/>
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </Button.Template>
+            </Button>
+            <TextBlock Text="ESC — назад в меню" Foreground="White" FontSize="20" TextAlignment="Center" Margin="0,20,0,0"/>
           </StackPanel>
         </Grid>
     </Grid>

@@ -10,7 +10,6 @@ namespace Game2D.Engine
         private const double Speed = 8;
         private int damage = 75;
         public Laser(Canvas canvas, double x, double y, double angle)
-            : base(canvas)
         {
             X = x;
             Y = y;
@@ -22,7 +21,7 @@ namespace Game2D.Engine
                 Width = 48,
                 Height = 48
             };
-            Sprite.RenderTransform = new System.Windows.Media.RotateTransform(angle * 180 / Math.PI, 16, 4);
+            Sprite.RenderTransform = new System.Windows.Media.RotateTransform(angle * 180 / Math.PI, 24, 24);
         }
         public override void Update()
         {

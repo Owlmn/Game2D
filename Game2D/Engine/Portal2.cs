@@ -1,7 +1,5 @@
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
-using System;
-using System.Collections.Generic;
 
 namespace Game2D.Engine
 {
@@ -13,7 +11,7 @@ namespace Game2D.Engine
             Y = y;
             Sprite = new Image
             {
-                Source = new BitmapImage(new Uri("pack://application:,,,/Project/images/portal2.jpg")),
+                Source = new BitmapImage(new Uri("pack://application:,,,/Project/images/portal2.png")),
                 Width = 64,
                 Height = 64
             };

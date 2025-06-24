@@ -1,7 +1,5 @@
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
-using System;
-using System.Collections.Generic;
 
 namespace Game2D.Engine
 {

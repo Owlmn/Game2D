@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -21,7 +19,7 @@ namespace Game2D.Engine
         {
             rows = (int)(canvas.ActualHeight / cellSize);
             cols = (int)(canvas.ActualWidth / cellSize);
-            if (rows < 5) rows = 12; // fallback
+            if (rows < 5) rows = 12;
             if (cols < 5) cols = 20;
             grid = new int[rows, cols];
             startCell = (1, 1);
@@ -32,11 +30,9 @@ namespace Game2D.Engine
 
         private void GenerateMap(MapDifficulty difficulty)
         {
-            // 1. Очистить сетку
             for (int r = 0; r < rows; r++)
                 for (int c = 0; c < cols; c++)
                     grid[r, c] = 0;
-            // 2. Внешние стены
             for (int r = 0; r < rows; r++)
             {
                 grid[r, 0] = 1;
@@ -47,7 +43,6 @@ namespace Game2D.Engine
                 grid[0, c] = 1;
                 grid[rows - 1, c] = 1;
             }
-            // 3. Случайные стены
             int wallCount = difficulty switch
             {
                 MapDifficulty.Easy => (rows * cols) / 12,
@@ -56,10 +51,8 @@ namespace Game2D.Engine
                 MapDifficulty.Hardcore => (rows * cols) / 5,
                 _ => (rows * cols) / 12
             };
-            // 4. Гарантируем путь: генерируем случайный путь от старта к порталу
             var path = GeneratePath(startCell, portalCell);
             var pathSet = new HashSet<(int,int)>(path);
-            // 5. Ставим одиночные стены, не перекрывая путь
             int placed = 0;
             while (placed < wallCount)
             {
@@ -71,7 +64,6 @@ namespace Game2D.Engine
                     placed++;
                 }
             }
-            // 6. Добавляем длинные горизонтальные стены
             int hWallCount = difficulty switch
             {
                 MapDifficulty.Easy => 1,
@@ -84,21 +76,19 @@ namespace Game2D.Engine
             {
                 int r = rng.Next(2, rows - 2);
                 int cStart = rng.Next(1, cols - 5);
-                int len = rng.Next(3, 6); // длина горизонтальной стены
+                int len = rng.Next(3, 6);
                 for (int l = 0; l < len && cStart + l < cols - 1; l++)
                 {
                     if (grid[r, cStart + l] == 0 && !pathSet.Contains((r, cStart + l)))
                         grid[r, cStart + l] = 1;
                 }
             }
-            // 7. Гарантируем отсутствие стен на старте и у портала
             grid[startCell.x, startCell.y] = 0;
             grid[portalCell.x, portalCell.y] = 0;
         }
 
         private List<(int,int)> GeneratePath((int x, int y) from, (int x, int y) to)
         {
-            // Простой random walk с bias к порталу
             var path = new List<(int,int)>();
             int x = from.x, y = from.y;
             path.Add((x, y));
@@ -109,7 +99,7 @@ namespace Game2D.Engine
                 if (y < to.y) options.Add((x, y + 1));
                 if (x > to.x) options.Add((x - 1, y));
                 if (y > to.y) options.Add((x, y - 1));
-                // Добавим случайности
+           
                 if (rng.NextDouble() < 0.3)
                 {
                     if (x > 1) options.Add((x - 1, y));
@@ -126,7 +116,6 @@ namespace Game2D.Engine
                 }
                 else
                 {
-                    // если зациклились, выходим
                     break;
                 }
             }
@@ -141,7 +130,6 @@ namespace Game2D.Engine
                 {
                     if (grid[r, c] == 1)
                     {
-                        // Горизонтальная или вертикальная?
                         if (r > 0 && r < rows - 1 && (c == 0 || c == cols - 1))
                             AddObject(new Wall_vertical(c * cellSize, r * cellSize));
                         else if (c > 0 && c < cols - 1 && (r == 0 || r == rows - 1))

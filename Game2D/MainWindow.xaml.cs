@@ -6,6 +6,7 @@ using Game2D.Engine;
 using System.Collections.Generic;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Linq;
 
 namespace Game2D
 {
@@ -33,6 +34,26 @@ namespace Game2D
         private bool portalSpawned = false;
         private double[] levelCoefs = new double[] { 1.0, 1.5, 2.0 };
 
+        // --- Система постепенного спавна мобов ---
+        private List<EnemySpawnData> _enemySpawnQueue = new List<EnemySpawnData>();
+        private int _spawnTimer = 0;
+        private int _spawnInterval = 120; // Интервал между спавном мобов (в кадрах)
+        private bool _spawningComplete = false;
+        private int _maxEnemiesOnScreen = 3; // Максимальное количество врагов на экране одновременно
+
+        // --- Система индикаторов здоровья ---
+        private List<HealthIndicator> _healthIndicators = new List<HealthIndicator>();
+
+        private class EnemySpawnData
+        {
+            public Type EnemyType { get; set; }
+            public double X { get; set; }
+            public double Y { get; set; }
+            public double HpCoef { get; set; }
+            public double DmgCoef { get; set; }
+            public double SpeedCoef { get; set; }
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -56,24 +77,31 @@ namespace Game2D
             MenuGrid.Visibility = Visibility.Visible;
             ControlsGrid.Visibility = Visibility.Collapsed;
             DifficultyGrid.Visibility = Visibility.Collapsed;
-            GameCanvas.Visibility = Visibility.Hidden;
-            HealthBar.Visibility = Visibility.Hidden;
-            ScoreLabel.Visibility = Visibility.Hidden;
-            AmmoLabel.Visibility = Visibility.Hidden;
-            WeaponLabel.Visibility = Visibility.Hidden;
-            TimerLabel.Visibility = Visibility.Hidden;
-            MessageLabel.Visibility = Visibility.Hidden;
-            // Удаляем все элементы Win/lose с Canvas
+            GameCanvas.Visibility = Visibility.Collapsed;
+            HealthBar.Visibility = Visibility.Collapsed;
+            ScoreLabel.Visibility = Visibility.Collapsed;
+            AmmoLabel.Visibility = Visibility.Collapsed;
+            WeaponLabel.Visibility = Visibility.Collapsed;
+            TimerLabel.Visibility = Visibility.Collapsed;
+            MessageLabel.Visibility = Visibility.Collapsed;
+            
             for (int i = GameCanvas.Children.Count - 1; i >= 0; i--)
             {
-                if (GameCanvas.Children[i] is Game2D.Engine.Win)
+                if (GameCanvas.Children[i] is Game2D.Engine.Controls || 
+                    GameCanvas.Children[i] is Game2D.Engine.DifficultSelect ||
+                    GameCanvas.Children[i] is Game2D.Engine.Win || 
+                    GameCanvas.Children[i] is Game2D.Engine.Exit ||
+                    GameCanvas.Children[i] is Grid)
                     GameCanvas.Children.RemoveAt(i);
             }
-            // Сброс параметров
-            _gameOver = false;
-            _score = 0;
-            portalSpawned = false;
-            currentPortal = null;
+            
+            if (_gameWorld != null)
+            {
+                _gameWorld.Stop();
+                _gameWorld = null;
+            }
+            _hero = null;
+            ClearHealthIndicators();
         }
         private void ShowControls()
         {
@@ -116,6 +144,9 @@ namespace Game2D
             _hero = new Hero(200, 200);
             _hero.MaxHealth = heroHP;
             _hero.Health = heroHP;
+            _hero.ResetAmmo();
+            HealthBar.Maximum = heroHP;
+            HealthBar.Value = heroHP;
             LoadLevel(currentLevelIndex);
             GameCanvas.Focus();
         }
@@ -156,6 +187,8 @@ namespace Game2D
                 var (hx, hy) = ((_gameWorld as RandomMap)?.GetStartPosition()).Value;
                 _hero.X = hx;
                 _hero.Y = hy;
+                _hero.Health = _hero.MaxHealth;
+                _hero.ResetAmmo();
                 if (_hero.Sprite != null && _hero.Sprite.Parent is Canvas oldCanvas)
                     oldCanvas.Children.Remove(_hero.Sprite);
                 _gameWorld.AddObject(_hero);
@@ -165,20 +198,22 @@ namespace Game2D
                 currentPortal = null;
                 portalSpawned = false;
             }
-            else if (levelIdx == 3) // Финальный уровень — случайная карта с боссом
+            else if (levelIdx == 3) // Финальный уровень — арена с боссом
             {
                 // Устанавливаем фон
                 var brush = new System.Windows.Media.ImageBrush();
-                brush.ImageSource = new System.Windows.Media.Imaging.BitmapImage(new System.Uri("pack://application:,,,/Project/images/MAP5.jpg"));
+                brush.ImageSource = new System.Windows.Media.Imaging.BitmapImage(new System.Uri("pack://application:,,,/Project/images/boss_map.png"));
                 brush.Stretch = System.Windows.Media.Stretch.UniformToFill;
                 GameCanvas.Background = brush;
-                // Генерируем карту с максимальной сложностью
-                _gameWorld = new RandomMap(GameCanvas, RandomMap.MapDifficulty.Hardcore);
+                // Создаем пустую арену без стен для боя с боссом
+                _gameWorld = new BossArena(GameCanvas);
                 CurrentGameWorld = _gameWorld;
                 CurrentLevelIndex = levelIdx;
-                var (hx, hy) = ((_gameWorld as RandomMap)?.GetStartPosition()).Value;
+                var (hx, hy) = ((_gameWorld as BossArena)?.GetStartPosition()).Value;
                 _hero.X = hx;
                 _hero.Y = hy;
+                _hero.Health = _hero.MaxHealth;
+                _hero.ResetAmmo();
                 if (_hero.Sprite != null && _hero.Sprite.Parent is Canvas oldCanvas)
                     oldCanvas.Children.Remove(_hero.Sprite);
                 _gameWorld.AddObject(_hero);
@@ -203,6 +238,8 @@ namespace Game2D
                     oldCanvas.Children.Remove(_hero.Sprite);
                 _gameWorld.AddObject(_hero);
                 _hero.X = 200; _hero.Y = 200;
+                _hero.Health = _hero.MaxHealth;
+                _hero.ResetAmmo();
                 SpawnLevelObjects(_selectedDifficulty, levelIdx, coef);
                 _gameWorld.Start();
                 currentPortal = null;
@@ -212,6 +249,11 @@ namespace Game2D
 
         private void SpawnLevelObjects(DifficultyLevel level, int levelIdx, double coef)
         {
+            // Очищаем очередь спавна
+            _enemySpawnQueue.Clear();
+            _spawnTimer = 0;
+            _spawningComplete = false;
+            
             // --- Масштабируем параметры врагов по сложности ---
             double hpCoef = 1, dmgCoef = 1, speedCoef = 1;
             int beastCount = 5, zombiCount = 3, cosmoCount = 4, shotgunCount = 2, rocketCount = 4;
@@ -220,48 +262,111 @@ namespace Game2D
                 case DifficultyLevel.Easy:
                     hpCoef = 1; dmgCoef = 1; speedCoef = 1;
                     beastCount = 5; zombiCount = 3; cosmoCount = 4; shotgunCount = 2; rocketCount = 4;
+                    _maxEnemiesOnScreen = 2;
                     break;
                 case DifficultyLevel.Medium:
                     hpCoef = 1.5; dmgCoef = 1.5; speedCoef = 1.2;
                     beastCount = 7; zombiCount = 5; cosmoCount = 6; shotgunCount = 3; rocketCount = 6;
+                    _maxEnemiesOnScreen = 3;
                     break;
                 case DifficultyLevel.Hard:
                     hpCoef = 2.2; dmgCoef = 2.2; speedCoef = 1.5;
                     beastCount = 10; zombiCount = 8; cosmoCount = 8; shotgunCount = 4; rocketCount = 8;
+                    _maxEnemiesOnScreen = 4;
                     break;
                 case DifficultyLevel.Hardcore:
                     hpCoef = 3.5; dmgCoef = 100; speedCoef = 2.2;
                     beastCount = 15; zombiCount = 12; cosmoCount = 12; shotgunCount = 6; rocketCount = 12;
+                    _maxEnemiesOnScreen = 5;
                     break;
             }
+            
             if (levelIdx == 0) // MAP
             {
+                // Добавляем зверей в очередь спавна
                 for (int i = 0; i < beastCount; i++)
-                    _gameWorld.AddObject(new EnemyBeast(_hero, 300 + i*100, 400, coef * hpCoef, dmgCoef, speedCoef));
+                {
+                    _enemySpawnQueue.Add(new EnemySpawnData
+                    {
+                        EnemyType = typeof(EnemyBeast),
+                        X = 300 + i * 100,
+                        Y = 400,
+                        HpCoef = coef * hpCoef,
+                        DmgCoef = dmgCoef,
+                        SpeedCoef = speedCoef
+                    });
+                }
+                // Добавляем зомби в очередь спавна
                 for (int i = 0; i < zombiCount; i++)
-                    _gameWorld.AddObject(new Zombi(_hero, 500 + i*120, 600, coef * hpCoef, dmgCoef, speedCoef));
+                {
+                    _enemySpawnQueue.Add(new EnemySpawnData
+                    {
+                        EnemyType = typeof(Zombi),
+                        X = 500 + i * 120,
+                        Y = 600,
+                        HpCoef = coef * hpCoef,
+                        DmgCoef = dmgCoef,
+                        SpeedCoef = speedCoef
+                    });
+                }
             }
             else if (levelIdx == 1) // MAP3
             {
+                // Добавляем космо-врагов в очередь спавна
                 for (int i = 0; i < cosmoCount; i++)
-                    _gameWorld.AddObject(new CosmoEnemy(_hero, 300 + i*120, 400, coef * hpCoef, dmgCoef, speedCoef));
+                {
+                    _enemySpawnQueue.Add(new EnemySpawnData
+                    {
+                        EnemyType = typeof(CosmoEnemy),
+                        X = 300 + i * 120,
+                        Y = 400,
+                        HpCoef = coef * hpCoef,
+                        DmgCoef = dmgCoef,
+                        SpeedCoef = speedCoef
+                    });
+                }
+                // Добавляем дробовиков в очередь спавна
                 for (int i = 0; i < shotgunCount; i++)
-                    _gameWorld.AddObject(new ShotgunEnemy(_hero, 500 + i*180, 600, coef * hpCoef, dmgCoef, speedCoef));
+                {
+                    _enemySpawnQueue.Add(new EnemySpawnData
+                    {
+                        EnemyType = typeof(ShotgunEnemy),
+                        X = 500 + i * 180,
+                        Y = 600,
+                        HpCoef = coef * hpCoef,
+                        DmgCoef = dmgCoef,
+                        SpeedCoef = speedCoef
+                    });
+                }
             }
             else if (levelIdx == 2) // MAP4
             {
+                // Добавляем ракетчиков в очередь спавна
                 for (int i = 0; i < rocketCount; i++)
-                    _gameWorld.AddObject(new RocketEnemy(_hero, 300 + i*120, 400, coef * hpCoef, dmgCoef, speedCoef));
+                {
+                    _enemySpawnQueue.Add(new EnemySpawnData
+                    {
+                        EnemyType = typeof(RocketEnemy),
+                        X = 300 + i * 120,
+                        Y = 400,
+                        HpCoef = coef * hpCoef,
+                        DmgCoef = dmgCoef,
+                        SpeedCoef = speedCoef
+                    });
+                }
             }
             else if (levelIdx == 3) // MAP5 (босс)
             {
+                // Босса создаем сразу
                 _gameWorld.AddObject(new Boss(_hero, _gameWorld._canvas.ActualWidth/2-64, 100, coef));
+                _spawningComplete = true;
             }
         }
 
         private void MainMenu_KeyDown(object sender, KeyEventArgs e)
         {
             if (MenuGrid.Visibility == Visibility.Visible) return;
+            
             if (ControlsGrid.Visibility == Visibility.Visible || DifficultyGrid.Visibility == Visibility.Visible)
             {
                 if (e.Key == Key.Escape)
@@ -278,7 +383,6 @@ namespace Game2D
                 }
                 return;
             }
-            // Только смена оружия и перезарядка
             if (e.Key == Key.R && _hero != null)
             {
                 _hero.Reload();
@@ -317,6 +421,31 @@ namespace Game2D
             if (_gameOver) return;
             if (_gameWorld == null || _hero == null || MenuGrid.Visibility == Visibility.Visible)
                 return;
+            
+            // --- Постепенный спавн мобов ---
+            if (!_spawningComplete && _enemySpawnQueue.Count > 0)
+            {
+                // Подсчитываем количество живых врагов
+                int aliveEnemies = 0;
+                if (_gameWorld != null)
+                {
+                    aliveEnemies = _gameWorld.Objects.Count(obj => 
+                        obj is EnemyBeast || obj is Zombi || obj is CosmoEnemy || 
+                        obj is ShotgunEnemy || obj is RocketEnemy);
+                }
+                
+                // Спавним нового врага только если на экране меньше максимального количества
+                if (aliveEnemies < _maxEnemiesOnScreen)
+                {
+                    _spawnTimer++;
+                    if (_spawnTimer >= _spawnInterval)
+                    {
+                        SpawnNextEnemy();
+                        _spawnTimer = 0;
+                    }
+                }
+            }
+            
             // --- Инфо-блок ---
             HealthBar.Value = Math.Max(0, Math.Min(_hero.Health, _hero.MaxHealth));
             string ammoText = _hero.CurrentWeapon switch
@@ -331,6 +460,10 @@ namespace Game2D
             var elapsed = DateTime.Now - _startTime;
             TimerLabel.Content = $"Time: {elapsed.Minutes:D2}:{elapsed.Seconds:D2}";
             ScoreLabel.Content = $"Score: {_gameWorld.Score}";
+            
+            // --- Обновление индикаторов здоровья ---
+            UpdateHealthIndicators();
+            
             // --- Переход на следующий уровень ---
             if (currentLevelIndex < levelScoreThresholds.Length)
             {
@@ -422,6 +555,8 @@ namespace Game2D
         {
             _gameOver = true;
             _gameWorld.Stop();
+            // Очищаем индикаторы
+            ClearHealthIndicators();
             // Удаляем все старые lose/win экраны
             for (int i = GameCanvas.Children.Count - 1; i >= 0; i--)
             {
@@ -453,6 +588,96 @@ namespace Game2D
             Canvas.SetLeft(grid, 0);
             Canvas.SetTop(grid, 0);
             GameCanvas.Children.Add(grid);
+        }
+
+        private void SpawnNextEnemy()
+        {
+            if (_enemySpawnQueue.Count > 0)
+            {
+                var spawnData = _enemySpawnQueue[0];
+                _enemySpawnQueue.RemoveAt(0);
+                
+                GameObject enemy = null;
+                
+                // Создаем врага в зависимости от типа
+                if (spawnData.EnemyType == typeof(EnemyBeast))
+                {
+                    enemy = new EnemyBeast(_hero, spawnData.X, spawnData.Y, spawnData.HpCoef, spawnData.DmgCoef, spawnData.SpeedCoef);
+                }
+                else if (spawnData.EnemyType == typeof(Zombi))
+                {
+                    enemy = new Zombi(_hero, spawnData.X, spawnData.Y, spawnData.HpCoef, spawnData.DmgCoef, spawnData.SpeedCoef);
+                }
+                else if (spawnData.EnemyType == typeof(CosmoEnemy))
+                {
+                    enemy = new CosmoEnemy(_hero, spawnData.X, spawnData.Y, spawnData.HpCoef, spawnData.DmgCoef, spawnData.SpeedCoef);
+                }
+                else if (spawnData.EnemyType == typeof(ShotgunEnemy))
+                {
+                    enemy = new ShotgunEnemy(_hero, spawnData.X, spawnData.Y, spawnData.HpCoef, spawnData.DmgCoef, spawnData.SpeedCoef);
+                }
+                else if (spawnData.EnemyType == typeof(RocketEnemy))
+                {
+                    enemy = new RocketEnemy(_hero, spawnData.X, spawnData.Y, spawnData.HpCoef, spawnData.DmgCoef, spawnData.SpeedCoef);
+                }
+                
+                if (enemy != null)
+                {
+                    _gameWorld.AddObject(enemy);
+                }
+                
+                // Если очередь пуста, отмечаем спавн завершенным
+                if (_enemySpawnQueue.Count == 0)
+                {
+                    _spawningComplete = true;
+                }
+            }
+        }
+
+        private void UpdateHealthIndicators()
+        {
+            // Очищаем старые индикаторы
+            foreach (var indicator in _healthIndicators)
+            {
+                indicator.Remove();
+            }
+            _healthIndicators.Clear();
+
+            // Добавляем индикатор для героя
+            if (_hero != null && _hero.IsActive)
+            {
+                var heroIndicator = new HealthIndicator(GameCanvas, _hero, true);
+                _healthIndicators.Add(heroIndicator);
+            }
+
+            // Добавляем индикаторы для всех врагов
+            if (_gameWorld != null)
+            {
+                foreach (var obj in _gameWorld.Objects)
+                {
+                    if (obj.IsActive && (obj is EnemyBeast || obj is Zombi || obj is CosmoEnemy || 
+                                        obj is ShotgunEnemy || obj is RocketEnemy))
+                    {
+                        var enemyIndicator = new HealthIndicator(GameCanvas, obj, false);
+                        _healthIndicators.Add(enemyIndicator);
+                    }
+                }
+            }
+
+            // Обновляем все индикаторы
+            foreach (var indicator in _healthIndicators)
+            {
+                indicator.Update();
+            }
+        }
+
+        private void ClearHealthIndicators()
+        {
+            foreach (var indicator in _healthIndicators)
+            {
+                indicator.Remove();
+            }
+            _healthIndicators.Clear();
         }
     }
 }
